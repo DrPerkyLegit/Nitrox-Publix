@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using NitroxModel.DataStructures;
@@ -70,6 +70,10 @@ namespace NitroxServer.Communication
 
         protected void ProcessIncomingData(INitroxConnection connection, Packet packet)
         {
+            //PATCH START
+            if (!Server.OnPacketRecieved(connection, packet))
+                return;
+            //PATCH END
             try
             {
                 packetHandler.Process(packet, connection);
