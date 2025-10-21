@@ -341,6 +341,10 @@ public partial class PlayerManager
 
     public void SendPacketToAllPlayers(Packet packet)
     {
+        //PATCH START
+        if (!Server.OnPacketSentToAllPlayers(packet))
+            return;
+        //PATCH END
         foreach (Player player in ConnectedPlayers())
         {
             player.SendPacket(packet);
@@ -349,6 +353,10 @@ public partial class PlayerManager
 
     public void SendPacketToOtherPlayers(Packet packet, Player sendingPlayer)
     {
+        //PATCH START
+        if (!Server.OnPacketSentToOtherPlayers(sendingPlayer.Connection, packet))
+            return;
+        //PATCH END
         foreach (Player player in ConnectedPlayers())
         {
             if (player != sendingPlayer)

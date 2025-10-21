@@ -72,7 +72,29 @@ public class Program
             Console.TreatControlCAsInput = true;
         }
 
-        Log.Info($"Starting NitroxServer V{NitroxEnvironment.Version} for {GameInfo.Subnautica.FullName}");
+        //Log.Info($"Starting NitroxServer V{NitroxEnvironment.Version} for {GameInfo.Subnautica.FullName}"); //Removed so we can do a custom log
+        //PATCH START
+
+        Log.Info($"Starting NitroxServer (Publix Fork) V{NitroxEnvironment.Version} for {GameInfo.Subnautica.FullName}");
+
+        string libPath = Path.Combine(AppContext.BaseDirectory, "Nitrox-PublixExtension.dll");
+        if (File.Exists(libPath))
+        {
+            try
+            {
+                Assembly.LoadFrom(libPath).GetType("Nitrox_PublixExtension.Entry")?.GetMethod("Init", BindingFlags.Public | BindingFlags.Static)?.Invoke(null, null);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to load PublixExtension: {ex}");
+            }
+        }
+        else
+        {
+            Log.Error($"Unable To Find Nitrox-PublixExtension.dll, Continuing");
+        }
+
+        //PATCH END
         Log.Debug($@"Process start args: ""{string.Join(@""", """, NitroxEnvironment.CommandLineArgs)}""");
 
         Task handleConsoleInputTask;
@@ -114,6 +136,9 @@ public class Program
                 }
                 else
                 {
+                    //PATCH START
+                    NitroxServer.Server.OnSystemMessage.Invoke($"1:{Math.Round(watch.Elapsed.TotalSeconds, 1)}"); //server started
+                    //PATCH END
                     Log.Info($"Server started ({Math.Round(watch.Elapsed.TotalSeconds, 1)}s)");
                     Log.Info("To get help for commands, run help in console or /help in chatbox");
                 }

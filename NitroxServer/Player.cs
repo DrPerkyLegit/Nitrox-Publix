@@ -153,6 +153,10 @@ namespace NitroxServer
 
         public void SendPacket(Packet packet)
         {
+            //PATCH START
+            if (!Server.OnPacketSentToPlayer(Connection, packet))
+                return;
+            //PATCH END
             Connection.SendPacket(packet);
         }
 

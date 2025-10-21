@@ -9,8 +9,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NitroxModel.DataStructures.GameLogic;
+using NitroxModel.Packets;
 using NitroxModel.Serialization;
 using NitroxModel.Server;
+using NitroxServer.Communication;
 using NitroxServer.GameLogic.Entities;
 using NitroxServer.Serialization;
 using NitroxServer.Serialization.World;
@@ -40,6 +42,13 @@ public class Server
     public int Port => serverConfig?.ServerPort ?? -1;
 
     public event Action<int>? PlayerCountChanged;
+    //PATCH START
+    public static Func<INitroxConnection, Packet, bool> OnPacketRecieved;
+    public static Func<INitroxConnection, Packet, bool> OnPacketSentToPlayer;
+    public static Func<INitroxConnection, Packet, bool> OnPacketSentToOtherPlayers;
+    public static Func<Packet, bool> OnPacketSentToAllPlayers;
+    public static Action<string> OnSystemMessage = (msg) => { };
+    //PATCH END
 
     public Server(WorldPersistence worldPersistence, World world, SubnauticaServerConfig serverConfig, Communication.NitroxServer server, WorldEntityManager worldEntityManager, EntityRegistry entityRegistry)
     {
@@ -68,6 +77,13 @@ public class Server
                 Save();
             }
         };
+
+        //PATCH START
+        OnPacketRecieved = (connection, packet) => { return true; };
+        OnPacketSentToPlayer = (connection, packet) => { return true; };
+        OnPacketSentToOtherPlayers = (connection, packet) => { return true; };
+        OnPacketSentToAllPlayers = (packet) => { return true; };
+        //PATCH END
     }
 
     public string GetSaveSummary(Perms viewerPerms = Perms.CONSOLE)
@@ -241,6 +257,17 @@ public class Server
             return;
         }
         IsRunning = false;
+
+        //PATCH START
+        try
+        {
+            Server.OnSystemMessage?.Invoke("0");
+        }
+        catch
+        {
+            //ignored
+        }
+        //PATCH END
 
         try
         {
